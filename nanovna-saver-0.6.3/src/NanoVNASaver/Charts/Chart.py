@@ -19,7 +19,7 @@
 import logging
 
 from dataclasses import dataclass, field, replace
-from typing import ClassVar, Any
+from typing import ClassVar, Any, Union
 
 from PyQt6 import QtWidgets, QtGui, QtCore
 from PyQt6.QtCore import pyqtSignal, Qt
@@ -192,7 +192,7 @@ class Chart(QtWidgets.QWidget):
             None,
         )
 
-    def getNearestMarker(self, x, y) -> Marker | None:
+    def getNearestMarker(self, x, y) -> Union[Marker, None]:
         if not self.data:
             return None
         shortest = 10**6

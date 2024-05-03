@@ -380,7 +380,7 @@ class NanoVNASaver(QWidget):
         )
 
         self.tdr_button = QtWidgets.QPushButton("Time Domain Reflectometry ...")
-        self.tdr_button.setMinimumHeight(20)
+        self.tdr_button.setMinimumHeight(10)
         self.tdr_button.clicked.connect(lambda: self.display_window("tdr"))
 
         tdr_control_layout.addRow(self.tdr_button)
@@ -409,10 +409,10 @@ class NanoVNASaver(QWidget):
         reference_control_layout = QtWidgets.QFormLayout(reference_control_box)
 
         btn_set_reference = QtWidgets.QPushButton("Set current as reference")
-        btn_set_reference.setMinimumHeight(20)
+        btn_set_reference.setMinimumHeight(10)
         btn_set_reference.clicked.connect(self.setReference)
         self.btnResetReference = QtWidgets.QPushButton("Reset reference")
-        self.btnResetReference.setMinimumHeight(20)
+        self.btnResetReference.setMinimumHeight(10)
         self.btnResetReference.clicked.connect(self.resetReference)
         self.btnResetReference.setDisabled(True)
 
@@ -432,7 +432,7 @@ class NanoVNASaver(QWidget):
         ###############################################################
 
         btnOpenCalibrationWindow = QtWidgets.QPushButton("Calibration ...")
-        btnOpenCalibrationWindow.setMinimumHeight(20)
+        btnOpenCalibrationWindow.setMinimumHeight(10)
         self.calibrationWindow = CalibrationWindow(self)
         btnOpenCalibrationWindow.clicked.connect(
             lambda: self.display_window("calibration")
@@ -443,16 +443,16 @@ class NanoVNASaver(QWidget):
         ###############################################################
 
         btn_display_setup = QtWidgets.QPushButton("Display setup ...")
-        btn_display_setup.setMinimumHeight(20)
+        btn_display_setup.setMinimumHeight(10)
         btn_display_setup.clicked.connect(lambda: self.display_window("setup"))
 
         btn_about = QtWidgets.QPushButton("About ...")
-        btn_about.setMinimumHeight(20)
+        btn_about.setMinimumHeight(10)
 
         btn_about.clicked.connect(lambda: self.display_window("about"))
 
         btn_open_file_window = QtWidgets.QPushButton("Files ...")
-        btn_open_file_window.setMinimumHeight(20)
+        btn_open_file_window.setMinimumHeight(10)
 
         btn_open_file_window.clicked.connect(
             lambda: self.display_window("file")
@@ -647,7 +647,7 @@ class NanoVNASaver(QWidget):
         self.btnResetReference.setDisabled(True)
 
     def sizeHint(self) -> QtCore.QSize:
-        return QtCore.QSize(1100, 950)
+        return QtCore.QSize(800, 450)
 
     def display_window(self, name):
         self.windows[name].show()

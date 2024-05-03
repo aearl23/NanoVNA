@@ -28,6 +28,7 @@ from NanoVNASaver.SITools import Format, Value
 
 from NanoVNASaver.Charts.Chart import Chart
 from NanoVNASaver.Charts.Frequency import FrequencyChart
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
@@ -407,7 +408,7 @@ class RealImaginaryChart(FrequencyChart):
 
         self.update()
 
-    def getNearestMarker(self, x, y) -> Marker | None:
+    def getNearestMarker(self, x, y) -> Union[Marker, None]:
         if not self.data:
             return None
         shortest = 10e6

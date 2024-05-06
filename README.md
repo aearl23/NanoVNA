@@ -9,6 +9,6 @@ The functionality of the program is as follows:
 - Log the data in a [Count, Evaluation, Latitude, Longitude] format
 - Using a maps.io API, export coordinates to a map interface to show data points by latitude and longitude coordinates
 
-GUI layout is optimized for a 800x450-5in Raspberry Pi 4B touchscreen. 
+This application is built using PyQt6 GUI features and the layout is optimized for a 800x450-5in Raspberry Pi 4B touchscreen. 
 
 

@@ -68,8 +68,8 @@ class LogMagChart(FrequencyChart):
         self._set_start_stop()
 
         # Draw bands if required
-        if self.bands.enabled:
-            self.drawBands(qp, self.fstart, self.fstop)
+        # if self.bands.enabled:
+        #     self.drawBands(qp, self.fstart, self.fstop)
 
         self.calc_scaling()
         self.draw_grid(qp)

@@ -52,26 +52,26 @@ class DisplaySettingsWindow(QtWidgets.QWidget):
         display_options_box = QtWidgets.QGroupBox("Options")
         display_options_layout = QtWidgets.QFormLayout(display_options_box)
 
-        self.returnloss_group = QtWidgets.QButtonGroup()
-        self.returnloss_is_negative = QtWidgets.QRadioButton("Negative")
-        self.returnloss_is_positive = QtWidgets.QRadioButton("Positive")
-        self.returnloss_group.addButton(self.returnloss_is_positive)
-        self.returnloss_group.addButton(self.returnloss_is_negative)
+        # self.returnloss_group = QtWidgets.QButtonGroup()
+        # self.returnloss_is_negative = QtWidgets.QRadioButton("Negative")
+        # self.returnloss_is_positive = QtWidgets.QRadioButton("Positive")
+        # self.returnloss_group.addButton(self.returnloss_is_positive)
+        # self.returnloss_group.addButton(self.returnloss_is_negative)
 
-        display_options_layout.addRow(
-            "Return loss is:", self.returnloss_is_negative
-        )
-        display_options_layout.addRow("", self.returnloss_is_positive)
+        # display_options_layout.addRow(
+        #     "Return loss is:", self.returnloss_is_negative
+        # )
+        # display_options_layout.addRow("", self.returnloss_is_positive)
 
-        self.returnloss_is_positive.setChecked(
-            Defaults.cfg.chart.returnloss_is_positive
-        )
-        self.returnloss_is_negative.setChecked(
-            not Defaults.cfg.chart.returnloss_is_positive
-        )
+        # self.returnloss_is_positive.setChecked(
+        #     Defaults.cfg.chart.returnloss_is_positive
+        # )
+        # self.returnloss_is_negative.setChecked(
+        #     not Defaults.cfg.chart.returnloss_is_positive
+        # )
 
-        self.returnloss_is_positive.toggled.connect(self.changeReturnLoss)
-        self.changeReturnLoss()
+        # self.returnloss_is_positive.toggled.connect(self.changeReturnLoss)
+        # self.changeReturnLoss()
 
         self.show_lines_option = QtWidgets.QCheckBox("Show lines")
         show_lines_label = QtWidgets.QLabel(
@@ -455,30 +455,33 @@ class DisplaySettingsWindow(QtWidgets.QWidget):
         for c in self.app.selectable_charts:
             if c.name == chart:
                 found = c
-        self.app.settings.setValue(f"Chart{x}{y}", chart)
-        old_widget = self.app.charts_layout.itemAtPosition(x, y)
-        if old_widget is not None:
-            w = old_widget.widget()
-            self.app.charts_layout.removeWidget(w)
-            w.hide()
-        if found is not None:
-            if self.app.charts_layout.indexOf(found) > -1:
-                logger.debug("%s is already shown, duplicating.", found.name)
-                found = self.app.copyChart(found)
-            self.app.charts_layout.addWidget(found, x, y)
-            if found.isHidden():
+                break
+        if found:     
+            self.app.settings.setValue(f"Chart{x}{y}", chart)
+            old_widget = self.app.charts_layout.itemAtPosition(x, y)
+            if old_widget is not None:
+                w = old_widget.widget()
+                self.app.charts_layout.removeWidget(w)
+                w.hide()
+        # if found is not None:
+        #     if self.app.charts_layout.indexOf(found) > -1:
+        #         logger.debug("%s is already shown, duplicating.", found.name)
+        #         found = self.app.copyChart(found)
+            if not self.app.charts_layout.indexOf(found) > -1:
+                self.app.charts_layout.addWidget(found, x, y)
                 found.show()
+            # if found.isHidden():
 
-    def changeReturnLoss(self):
-        state = self.returnloss_is_positive.isChecked()
-        Defaults.cfg.chart.returnloss_is_positive = bool(state)
-        for m in self.app.markers:
-            m.returnloss_is_positive = state
-            m.updateLabels(self.app.data.s11, self.app.data.s21)
-        self.marker_window.exampleMarker.returnloss_is_positive = state
-        self.marker_window.updateMarker()
-        self.app.charts["s11"]["log_mag"].isInverted = state
-        self.app.charts["s11"]["log_mag"].update()
+    # def changeReturnLoss(self):
+    #     state = self.returnloss_is_positive.isChecked()
+    #     Defaults.cfg.chart.returnloss_is_positive = bool(state)
+    #     for m in self.app.markers:
+    #         m.returnloss_is_positive = state
+    #         m.updateLabels(self.app.data.s11, self.app.data.s21)
+    #     self.marker_window.exampleMarker.returnloss_is_positive = state
+    #     self.marker_window.updateMarker()
+    #     self.app.charts["s11"]["log_mag"].isInverted = state
+    #     self.app.charts["s11"]["log_mag"].update()
 
     def changeShowLines(self):
         state = self.show_lines_option.isChecked()

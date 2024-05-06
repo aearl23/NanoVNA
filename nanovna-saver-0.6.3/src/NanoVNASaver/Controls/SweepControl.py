@@ -67,14 +67,14 @@ class SweepControl(Control):
         self.input_center.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.input_center.textEdited.connect(self.update_start_end)
 
-        input_right_layout.addRow(QtWidgets.QLabel("Center"), self.input_center)
+        #input_right_layout.addRow(QtWidgets.QLabel("Center"), self.input_center)
 
         self.input_span = FrequencyInputWidget()
         self.input_span.setFixedHeight(20)
         self.input_span.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.input_span.textEdited.connect(self.update_start_end)
 
-        input_right_layout.addRow(QtWidgets.QLabel("Span"), self.input_span)
+        #input_right_layout.addRow(QtWidgets.QLabel("Span"), self.input_span)
 
         self.input_segments = QtWidgets.QLineEdit(
             self.app.settings.value("Segments", "1")
@@ -90,25 +90,25 @@ class SweepControl(Control):
             | QtCore.Qt.AlignmentFlag.AlignVCenter
         )
 
-        segment_layout = QtWidgets.QHBoxLayout()
-        segment_layout.addWidget(self.input_segments)
-        segment_layout.addWidget(self.label_step)
-        self.layout.addRow(QtWidgets.QLabel("Segments"), segment_layout)
+        #segment_layout = QtWidgets.QHBoxLayout()
+        #segment_layout.addWidget(self.input_segments)
+        #segment_layout.addWidget(self.label_step)
+        #self.layout.addRow(QtWidgets.QLabel("Segments"), segment_layout)
 
-        btn_settings_window = QtWidgets.QPushButton("Sweep settings ...")
-        btn_settings_window.setFixedHeight(20)
-        btn_settings_window.clicked.connect(
-            lambda: self.app.display_window("sweep_settings")
-        )
+        #btn_settings_window = QtWidgets.QPushButton("Sweep settings ...")
+        #btn_settings_window.setFixedHeight(20)
+        #btn_settings_window.clicked.connect(
+        #    lambda: self.app.display_window("sweep_settings")
+        #)
 
-        self.layout.addRow(btn_settings_window)
+        #self.layout.addRow(btn_settings_window)
 
         self.progress_bar = QtWidgets.QProgressBar()
         self.progress_bar.setMaximum(100)
         self.progress_bar.setValue(0)
         self.layout.addRow(self.progress_bar)
 
-        self.btn_start = QtWidgets.QPushButton("Sweep")
+        self.btn_start = QtWidgets.QPushButton("Start scan")
         self.btn_start.setFixedHeight(20)
         self.btn_start.clicked.connect(self.app.sweep_start)
         self.btn_start.setShortcut(

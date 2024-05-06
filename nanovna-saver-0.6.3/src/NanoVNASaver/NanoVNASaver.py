@@ -17,14 +17,23 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import contextlib
+import sys 
+import asyncio
 import logging
 import sys
 import threading
+import time
+import serial 
+#import adafruit_gps
+import requests
+import webbrowser
 from time import strftime, localtime
 
 from PyQt6 import QtWidgets, QtCore, QtGui
-from PyQt6.QtCore import QObject
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtCore import QObject, QTimer 
+from PyQt6.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QHeaderView
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
+
 
 from NanoVNASaver import Defaults
 from .Windows import (
@@ -76,6 +85,183 @@ from .Settings.Bands import BandsModel
 from .Settings.Sweep import Sweep
 from .Touchstone import Touchstone
 from .About import version
+
+
+
+###########################################
+# Map data export
+###########################################
+
+def export_data_to_map():
+        #step 1, login and return the session ID
+
+        def login(email, password):
+            print("attempting login....")
+            url = "https://maps.co/api/userLogIn"
+            data = {
+                "userEmail": email,
+                "userPassword": password
+            }
+
+            try:
+                response = requests.post(url, json=data)
+                print("response content:", response.content)
+                response_json = response.json()
+                
+                if response_json.get("success") == 1:
+                    session_id = response_json["USER"]["sessionID"]
+                    print("Login successful. Session ID:", session_id)
+                    return session_id
+                else:
+                    print("Login failed:", response_json.get("message"))
+                    return None
+            except Exception as e:
+                print("An error occurred during login:", e)
+                return None
+
+        session_id = login("aaronearl7@gmail.com", "ae030456")
+        print("Session ID:", session_id)
+
+
+        #step 2, function to get the layers 
+
+        def get_layers(session_id):
+            print("Getting list of layers....")
+            url = "https://maps.co/api/userGetLayers"
+            headers = {
+                "Cookie": f"sessionID={session_id}"
+            }
+
+            try:
+                response = requests.get(url, headers=headers)
+                print("response content:", response.content)
+                response_json = response.json()
+                
+                if response_json.get("success") == 1:
+                    layers = response_json.get("Layers", {})
+                    print("List of layers:", layers)
+                    return layers
+                else:
+                    print("Failed to get list of layers:", response_json.get("message"))
+                    return None
+            except Exception as e:
+                print("An error occurred while getting list of layers:", e)
+                return None
+
+        session_id = "65e20dc1411db070603766ige33a641"
+        layers = get_layers(session_id)
+
+
+        #step 3, Manually add locations to layer 
+
+        def add_location_to_layer(session_id, layer_id, layer_name, latitude, longitude):
+            print("Adding location to layer....")
+            url = "https://maps.co/api/layerLocationAdd"
+            data = {
+                "layerID": layer_id,
+                "layerName": layer_name,
+                "lat": latitude,
+                "lng": longitude
+            }
+            headers = {
+                "Cookie": f"sessionID={session_id}"
+            }
+
+            try:
+                response = requests.post(url, json=data, headers=headers)
+                print("Response content:", response.content)
+                response_json = response.json()
+
+                if response_json.get("success") == 1:
+                    print("Location added successfully to layer.")
+                else:
+                    print("Failed to add location to layer:", response_json.get("message"))
+            except Exception as e:
+                print("An error occurred while adding location to layer:", e)
+
+        #Usage  - Set to continuously read the data from the data table 
+
+        session_id = "65e20dc1411db070603766ige33a641"
+        layer_id = "65e2139f6e47e308984963abz393654"
+        layer_name = "rasp_pi gps test v.1"
+
+        #Map the same data displayed to the data table 
+        for index in range(len(scan_data['Number'])):
+            latitude = scan_data['Latitude'][index]
+            longitude = scan_data['Longitude'][index]
+
+        #Call the function to add data to map layer 
+        add_location_to_layer(session_id, layer_id, layer_name, latitude, longitude)
+
+
+        url = "https://maps.co/gis/"
+        webbrowser.open(url) 
+
+##########################################
+# GPS Module 
+##########################################
+
+# Global variables to store lat and lng
+latest_latitude = None
+latest_longitude = None
+scan_count = 0
+scan_data = {
+    'Number': [],
+    'Evaluation': [],
+    'Latitude': [],
+    'Longitude': []
+}
+
+# Constantly read GPS data
+# async def gps_worker():
+#     global latest_latitude, latest_longitude
+#     # Function that writes GPS data to gps_data.txt
+#     # Create a serial connection for the GPS connection using default speed
+#     uart = serial.Serial("/dev/serial0", baudrate=9600, timeout=3000)
+
+#     # Create a GPS module instance.
+#     gps = adafruit_gps.GPS(uart, debug=False)
+#     # Use UART/pyserial
+
+#     gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+#     gps.send_command(b"PMTK220,1000")
+
+#     # Main loop runs forever printing the location, etc. every second.
+#     last_print = time.monotonic()
+#     while True:
+#         # Make sure to call gps.update() every loop iteration and at least twice
+#         # as fast as data comes from the GPS unit (usually every second).
+#         # This returns a bool that's true if it parsed new data (you can ignore it
+#         # though if you don't care and instead look at the has_fix property).
+#         gps.update()
+#         # Every second save current location details to global variables if there's a fix.
+#         current = time.monotonic()
+#         if current - last_print >= 1.0:
+#             last_print = current
+#             if gps.has_fix:
+#                 latest_latitude = gps.latitude
+#                 latest_longitude = gps.longitude
+#                 print("=" * 40)  # Print a separator line.
+#                 print("Fix timestamp: {}/{}/{} {:02}:{:02}:{:02}".format(
+#                     gps.timestamp_utc.tm_mon,  # Grab parts of the time from the
+#                     gps.timestamp_utc.tm_mday,  # struct_time object that holds
+#                     gps.timestamp_utc.tm_year,  # the fix time.  Note you might
+#                     gps.timestamp_utc.tm_hour,  # not get all data like year, day,
+#                     gps.timestamp_utc.tm_min,  # month!
+#                     gps.timestamp_utc.tm_sec,
+#                 ))
+#                 print("Latitude: {0:.6f} degrees".format(gps.latitude))
+#                 print("Longitude: {0:.6f} degrees".format(gps.longitude))
+#                 print("Precise Latitude: {:.0f}.{:04.4f} degrees".format(
+#                     gps.latitude_degrees, gps.latitude_minutes
+#                 ))
+#                 print("Precise Longitude: {:.0f}.{:04.4f} degrees".format(
+#                     gps.longitude_degrees, gps.longitude_minutes
+#                 ))
+#             else:
+#                 print("Waiting for fix...")
+#         await asyncio.sleep(1)
+
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +330,7 @@ class NanoVNASaver(QWidget):
 
         logger.debug("Building user interface")
 
-        self.baseTitle = f"NanoVNA Saver {NanoVNASaver.version}"
+        self.baseTitle = f"Corn Stalk Integration Device "
         self.updateTitle()
         layout = QtWidgets.QBoxLayout(
             QtWidgets.QBoxLayout.Direction.LeftToRight
@@ -171,43 +357,43 @@ class NanoVNASaver(QWidget):
         scrollarea.setWidget(widget)
 
         self.charts = {
-            "s11": {
-                "capacitance": CapacitanceChart("S11 Serial C"),
-                "group_delay": GroupDelayChart("S11 Group Delay"),
-                "inductance": InductanceChart("S11 Serial L"),
-                "log_mag": LogMagChart("S11 Return Loss"),
-                "magnitude": MagnitudeChart("|S11|"),
-                "magnitude_z": MagnitudeZChart("S11 |Z|"),
-                "permeability": PermeabilityChart(
-                    "S11 R/\N{GREEK SMALL LETTER OMEGA} &"
-                    " X/\N{GREEK SMALL LETTER OMEGA}"
-                ),
-                "phase": PhaseChart("S11 Phase"),
-                "q_factor": QualityFactorChart("S11 Quality Factor"),
-                "real_imag": RealImaginaryZChart("S11 R+jX"),
-                "real_imag_mu": RealImaginaryMuChart(
-                    "S11 \N{GREEK SMALL LETTER MU}"
-                ),
-                "smith": SmithChart("S11 Smith Chart"),
-                "s_parameter": SParameterChart("S11 Real/Imaginary"),
-                "vswr": VSWRChart("S11 VSWR"),
-                "sa_dbm": LogMagChart("Signal Analyser dBm"),
-            },
+            # "s11": {
+            #     "capacitance": CapacitanceChart("S11 Serial C"),
+            #     "group_delay": GroupDelayChart("S11 Group Delay"),
+            #     "inductance": InductanceChart("S11 Serial L"),
+            #     "log_mag": LogMagChart("S11 Return Loss"),
+            #     "magnitude": MagnitudeChart("|S11|"),
+            #     "magnitude_z": MagnitudeZChart("S11 |Z|"),
+            #     "permeability": PermeabilityChart(
+            #         "S11 R/\N{GREEK SMALL LETTER OMEGA} &"
+            #         " X/\N{GREEK SMALL LETTER OMEGA}"
+            #     ),
+            #     "phase": PhaseChart("S11 Phase"),
+            #     "q_factor": QualityFactorChart("S11 Quality Factor"),
+            #     "real_imag": RealImaginaryZChart("S11 R+jX"),
+            #     "real_imag_mu": RealImaginaryMuChart(
+            #         "S11 \N{GREEK SMALL LETTER MU}"
+            #    ),
+                # "smith": SmithChart("S11 Smith Chart"),
+                # "s_parameter": SParameterChart("S11 Real/Imaginary"),
+                # "vswr": VSWRChart("S11 VSWR"),
+                # "sa_dbm": LogMagChart("Signal Analyser dBm"),
+            #},
             "s21": {
-                "group_delay": GroupDelayChart(
-                    "S21 Group Delay", reflective=False
-                ),
+                #"group_delay": GroupDelayChart(
+                #    "S21 Group Delay", reflective=False
+                #),
                 "log_mag": LogMagChart("S21 Gain"),
-                "magnitude": MagnitudeChart("|S21|"),
-                "magnitude_z_shunt": MagnitudeZShuntChart("S21 |Z| shunt"),
-                "magnitude_z_series": MagnitudeZSeriesChart("S21 |Z| series"),
-                "real_imag_shunt": RealImaginaryZShuntChart("S21 R+jX shunt"),
-                "real_imag_series": RealImaginaryZSeriesChart(
-                    "S21 R+jX series"
-                ),
-                "phase": PhaseChart("S21 Phase"),
-                "polar": PolarChart("S21 Polar Plot"),
-                "s_parameter": SParameterChart("S21 Real/Imaginary"),
+                #"magnitude": MagnitudeChart("|S21|"),
+                #"magnitude_z_shunt": MagnitudeZShuntChart("S21 |Z| shunt"),
+                #"magnitude_z_series": MagnitudeZSeriesChart("S21 |Z| series"),
+                #"real_imag_shunt": RealImaginaryZShuntChart("S21 R+jX shunt"),
+                #"real_imag_series": RealImaginaryZSeriesChart(
+                #    "S21 R+jX series"
+                #),
+                #"phase": PhaseChart("S21 Phase"),
+                #"polar": PolarChart("S21 Polar Plot"),
+                #"s_parameter": SParameterChart("S21 Real/Imaginary"),
             },
             "combined": {
                 "log_mag": CombinedLogMagChart("S11 & S21 LogMag"),
@@ -216,10 +402,10 @@ class NanoVNASaver(QWidget):
         self.tdr_chart = TDRChart("TDR")
         self.tdr_mainwindow_chart = TDRChart("TDR")
 
-        # List of all the S11 charts, for selecting
-        self.s11charts = list(self.charts["s11"].values())
+        #List of all the S11 charts, for selecting
+        #self.s11charts = list(self.charts["s11"].values())
 
-        # List of all the S21 charts, for selecting
+        #List of all the S21 charts, for selecting
         self.s21charts = list(self.charts["s21"].values())
 
         # List of all charts that use both S11 and S21
@@ -227,12 +413,12 @@ class NanoVNASaver(QWidget):
 
         # List of all charts that can be selected for display
         self.selectable_charts = (
-            self.s11charts
-            + self.s21charts
-            + self.combinedCharts
-            + [
-                self.tdr_mainwindow_chart,
-            ]
+            #self.s11charts
+            self.s21charts
+        #      + self.combinedChartss
+        #      + [
+        #          self.tdr_mainwindow_chart,
+        #      ]
         )
 
         # List of all charts that subscribe to updates (including duplicates!)
@@ -240,10 +426,12 @@ class NanoVNASaver(QWidget):
         self.subscribing_charts.extend(self.selectable_charts)
         self.subscribing_charts.append(self.tdr_chart)
 
-        for c in self.subscribing_charts:
-            c.popoutRequested.connect(self.popoutChart)
+        # for c in self.subscribing_charts:
+        #     c.popoutRequested.connect(self.popoutChart)
 
         self.charts_layout = QtWidgets.QGridLayout()
+        # self.charts_layout.addWidget(self.s21charts)
+
 
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Q"), self, self.close)
 
@@ -264,21 +452,21 @@ class NanoVNASaver(QWidget):
         self.splitter.restoreState(Defaults.cfg.gui.splitter_sizes)
 
         layout.addLayout(left_column)
-        layout.addWidget(self.splitter, 2)
+        layout.addWidget(self.splitter, 1)
 
         ###############################################################
         #  Windows
         ###############################################################
 
         self.windows = {
-            "about": AboutWindow(self),
-            "analysis": AnalysisWindow(self),
-            "calibration": CalibrationWindow(self),
-            "device_settings": DeviceSettingsWindow(self),
-            "file": FilesWindow(self),
+        #     "about": AboutWindow(self),
+        #     "analysis": AnalysisWindow(self),
+        #     "calibration": CalibrationWindow(self),
+        #     "device_settings": DeviceSettingsWindow(self),
+        #     "file": FilesWindow(self),
             "sweep_settings": SweepSettingsWindow(self),
             "setup": DisplaySettingsWindow(self),
-            "tdr": TDRWindow(self),
+        #     "tdr": TDRWindow(self),
         }
 
         ###############################################################
@@ -291,32 +479,32 @@ class NanoVNASaver(QWidget):
         #  Marker control
         ###############################################################
 
-        left_column.addWidget(self.marker_control)
+        #left_column.addWidget(self.marker_control)
 
-        for c in self.subscribing_charts:
-            c.setMarkers(self.markers)
-            c.setBands(self.bands)
+        # for c in self.subscribing_charts:
+        #     c.setMarkers(self.markers)
+        #     c.setBands(self.bands)
 
-        self.marker_data_layout = QtWidgets.QVBoxLayout()
-        self.marker_data_layout.setContentsMargins(0, 0, 0, 0)
+        # self.marker_data_layout = QtWidgets.QVBoxLayout()
+        # self.marker_data_layout.setContentsMargins(0, 0, 0, 0)
 
-        for m in self.markers:
-            self.marker_data_layout.addWidget(m.get_data_layout())
+        # for m in self.markers:
+        #     self.marker_data_layout.addWidget(m.get_data_layout())
 
-        scroll2 = QtWidgets.QScrollArea()
-        scroll2.setWidgetResizable(True)
-        scroll2.setVisible(True)
+        # scroll2 = QtWidgets.QScrollArea()
+        # scroll2.setWidgetResizable(True)
+        # scroll2.setVisible(True)
 
-        widget2 = QWidget()
-        widget2.setLayout(self.marker_data_layout)
-        scroll2.setWidget(widget2)
-        self.marker_column.addWidget(scroll2)
+        # widget2 = QWidget()
+        # widget2.setLayout(self.marker_data_layout)
+        # scroll2.setWidget(widget2)
+        # self.marker_column.addWidget(scroll2)
 
         # init delta marker (but assume only one marker exists)
-        self.delta_marker = DeltaMarker("Delta Marker 2 - Marker 1")
-        self.delta_marker_layout = self.delta_marker.get_data_layout()
-        self.delta_marker_layout.hide()
-        self.marker_column.addWidget(self.delta_marker_layout)
+        # self.delta_marker = DeltaMarker("Delta Marker 2 - Marker 1")
+        # self.delta_marker_layout = self.delta_marker.get_data_layout()
+        # self.delta_marker_layout.hide()
+        # self.marker_column.addWidget(self.delta_marker_layout)
 
         ###############################################################
         #  Statistics/analysis
@@ -326,14 +514,14 @@ class NanoVNASaver(QWidget):
         s11_control_box.setTitle("S11")
         s11_control_layout = QtWidgets.QFormLayout()
         s11_control_layout.setVerticalSpacing(0)
-        s11_control_box.setLayout(s11_control_layout)
+        #s11_control_box.setLayout(s11_control_layout)
 
         self.s11_min_swr_label = QtWidgets.QLabel()
         s11_control_layout.addRow("Min VSWR:", self.s11_min_swr_label)
         self.s11_min_rl_label = QtWidgets.QLabel()
         s11_control_layout.addRow("Return loss:", self.s11_min_rl_label)
 
-        self.marker_column.addWidget(s11_control_box)
+        # self.marker_column.addWidget(s11_control_box)
 
         s21_control_box = QtWidgets.QGroupBox()
         s21_control_box.setTitle("S21")
@@ -351,41 +539,41 @@ class NanoVNASaver(QWidget):
 
         # self.marker_column.addStretch(1)
 
-        self.windows["analysis"] = AnalysisWindow(self)
-        btn_show_analysis = QtWidgets.QPushButton("Analysis ...")
-        btn_show_analysis.setMinimumHeight(10)
-        btn_show_analysis.clicked.connect(
-            lambda: self.display_window("analysis")
-        )
-        self.marker_column.addWidget(btn_show_analysis)
+        # self.windows["analysis"] = AnalysisWindow(self)
+        # btn_show_analysis = QtWidgets.QPushButton("Analysis ...")
+        # btn_show_analysis.setMinimumHeight(10)
+        # btn_show_analysis.clicked.connect(
+        #     lambda: self.display_window("analysis")
+        # )
+        # self.marker_column.addWidget(btn_show_analysis)
 
         ###############################################################
         # TDR
         ###############################################################
 
-        self.tdr_chart.tdrWindow = self.windows["tdr"]
-        self.tdr_mainwindow_chart.tdrWindow = self.windows["tdr"]
-        self.windows["tdr"].updated.connect(self.tdr_chart.update)
-        self.windows["tdr"].updated.connect(self.tdr_mainwindow_chart.update)
+        # self.tdr_chart.tdrWindow = self.windows["tdr"]
+        # self.tdr_mainwindow_chart.tdrWindow = self.windows["tdr"]
+        # self.windows["tdr"].updated.connect(self.tdr_chart.update)
+        # self.windows["tdr"].updated.connect(self.tdr_mainwindow_chart.update)
 
-        tdr_control_box = QtWidgets.QGroupBox()
-        tdr_control_box.setTitle("TDR")
-        tdr_control_layout = QtWidgets.QFormLayout()
-        tdr_control_box.setLayout(tdr_control_layout)
+        # tdr_control_box = QtWidgets.QGroupBox()
+        # tdr_control_box.setTitle("TDR")
+        # tdr_control_layout = QtWidgets.QFormLayout()
+        # tdr_control_box.setLayout(tdr_control_layout)
 
-        self.tdr_result_label = QtWidgets.QLabel()
-        self.tdr_result_label.setMinimumHeight(10)
-        tdr_control_layout.addRow(
-            "Estimated cable length:", self.tdr_result_label
-        )
+        # self.tdr_result_label = QtWidgets.QLabel()
+        # self.tdr_result_label.setMinimumHeight(10)
+        # tdr_control_layout.addRow(
+        #     "Estimated cable length:", self.tdr_result_label
+        # )
 
-        self.tdr_button = QtWidgets.QPushButton("Time Domain Reflectometry ...")
-        self.tdr_button.setMinimumHeight(10)
-        self.tdr_button.clicked.connect(lambda: self.display_window("tdr"))
+        # self.tdr_button = QtWidgets.QPushButton("Time Domain Reflectometry ...")
+        # self.tdr_button.setMinimumHeight(10)
+        # self.tdr_button.clicked.connect(lambda: self.display_window("tdr"))
 
-        tdr_control_layout.addRow(self.tdr_button)
+        # tdr_control_layout.addRow(self.tdr_button)
 
-        left_column.addWidget(tdr_control_box)
+        # left_column.addWidget(tdr_control_box)
 
         ###############################################################
         #  Spacer
@@ -404,22 +592,22 @@ class NanoVNASaver(QWidget):
         #  Reference control
         ###############################################################
 
-        reference_control_box = QtWidgets.QGroupBox()
-        reference_control_box.setTitle("Reference sweep")
-        reference_control_layout = QtWidgets.QFormLayout(reference_control_box)
+        # reference_control_box = QtWidgets.QGroupBox()
+        # reference_control_box.setTitle("Reference sweep")
+        # reference_control_layout = QtWidgets.QFormLayout(reference_control_box)
 
-        btn_set_reference = QtWidgets.QPushButton("Set current as reference")
-        btn_set_reference.setMinimumHeight(10)
-        btn_set_reference.clicked.connect(self.setReference)
-        self.btnResetReference = QtWidgets.QPushButton("Reset reference")
-        self.btnResetReference.setMinimumHeight(10)
-        self.btnResetReference.clicked.connect(self.resetReference)
-        self.btnResetReference.setDisabled(True)
+        # btn_set_reference = QtWidgets.QPushButton("Set current as reference")
+        # btn_set_reference.setMinimumHeight(10)
+        # btn_set_reference.clicked.connect(self.setReference)
+        # self.btnResetReference = QtWidgets.QPushButton("Reset reference")
+        # self.btnResetReference.setMinimumHeight(10)
+        # self.btnResetReference.clicked.connect(self.resetReference)
+        # self.btnResetReference.setDisabled(True)
 
-        reference_control_layout.addRow(btn_set_reference)
-        reference_control_layout.addRow(self.btnResetReference)
+        # reference_control_layout.addRow(btn_set_reference)
+        # reference_control_layout.addRow(self.btnResetReference)
 
-        left_column.addWidget(reference_control_box)
+        # left_column.addWidget(reference_control_box)
 
         ###############################################################
         #  Serial control
@@ -427,45 +615,85 @@ class NanoVNASaver(QWidget):
 
         left_column.addWidget(self.serial_control)
 
+
+        ###############################################################
+        # Buttons 
+        ###############################################################
+
+        self.export_button = QPushButton("Export Data to Map")
+        self.export_button.clicked.connect(export_data_to_map)
+
+        right_column.addWidget(self.export_button)
+
+        ###############################################################
+        # GPS labels 
+        ###############################################################
+
+        # self.latitude_label = QLabel("Latitude:")
+        # self.longitude_label = QLabel("Longitude:")
+        # right_column.addWidget(self.latitude_label)
+        # right_column.addWidget(self.longitude_label)
+
+        ###############################################################
+        #   Data Table 
+        ###############################################################
+
+        self.data_table = QTableWidget()
+        self.data_table.setColumnCount(4)
+        self.data_table.setHorizontalHeaderLabels(['Scan Number', 'Evaluation', 'Latitude', 'Longitude'])
+        self.marker_column.addWidget(self.data_table)
+
+        ###############################################################
+        #  GPS worker start and updates
+        ###############################################################
+
+        # self.gps_thread = threading.Thread(target=self.start_gps_worker)
+        # self.gps_thread.start()
+
+        # # Update GPS coordinates and table every second
+        # self.update_timer = QTimer()
+        # self.update_timer.timeout.connect(self.update_data)
+        # self.update_timer.start(1000)
+
         ###############################################################
         #  Calibration
         ###############################################################
 
-        btnOpenCalibrationWindow = QtWidgets.QPushButton("Calibration ...")
-        btnOpenCalibrationWindow.setMinimumHeight(10)
-        self.calibrationWindow = CalibrationWindow(self)
-        btnOpenCalibrationWindow.clicked.connect(
-            lambda: self.display_window("calibration")
-        )
+        # btnOpenCalibrationWindow = QtWidgets.QPushButton("Calibration ...")
+        # btnOpenCalibrationWindow.setMinimumHeight(10)
+        # self.calibrationWindow = CalibrationWindow(self)
+        # btnOpenCalibrationWindow.clicked.connect(
+        #     lambda: self.display_window("calibration")
+        # )
 
         ###############################################################
         #  Display setup
         ###############################################################
 
-        btn_display_setup = QtWidgets.QPushButton("Display setup ...")
-        btn_display_setup.setMinimumHeight(10)
-        btn_display_setup.clicked.connect(lambda: self.display_window("setup"))
+        # btn_display_setup = QtWidgets.QPushButton("Display setup ...")
+        # btn_display_setup.setMinimumHeight(10)
+        # btn_display_setup.clicked.connect(lambda: self.display_window("setup"))
 
-        btn_about = QtWidgets.QPushButton("About ...")
-        btn_about.setMinimumHeight(10)
+        # btn_about = QtWidgets.QPushButton("About ...")
+        # btn_about.setMinimumHeight(10)
 
-        btn_about.clicked.connect(lambda: self.display_window("about"))
+        # btn_about.clicked.connect(lambda: self.display_window("about"))
 
-        btn_open_file_window = QtWidgets.QPushButton("Files ...")
-        btn_open_file_window.setMinimumHeight(10)
+        # btn_open_file_window = QtWidgets.QPushButton("Files ...")
+        # btn_open_file_window.setMinimumHeight(10)
 
-        btn_open_file_window.clicked.connect(
-            lambda: self.display_window("file")
-        )
+        # btn_open_file_window.clicked.connect(
+        #     lambda: self.display_window("file")
+        # )
 
-        button_grid = QtWidgets.QGridLayout()
-        button_grid.addWidget(btn_open_file_window, 0, 0)
-        button_grid.addWidget(btnOpenCalibrationWindow, 0, 1)
-        button_grid.addWidget(btn_display_setup, 1, 0)
-        button_grid.addWidget(btn_about, 1, 1)
-        left_column.addLayout(button_grid)
+        # button_grid = QtWidgets.QGridLayout()
+        # button_grid.addWidget(btn_open_file_window, 0, 0)
+        # button_grid.addWidget(btnOpenCalibrationWindow, 0, 1)
+        # button_grid.addWidget(btn_display_setup, 1, 0)
+        # button_grid.addWidget(btn_about, 1, 1)
+        # left_column.addLayout(button_grid)
 
-        logger.debug("Finished building interface")
+        # logger.debug("Finished building interface")
 
     def auto_connect(self):  # connect if there is exactly one detected serial device
         if self.serial_control.inp_port.count() == 1:
@@ -487,11 +715,11 @@ class NanoVNASaver(QWidget):
 
         for m in self.markers:
             m.resetLabels()
-        self.s11_min_rl_label.setText("")
-        self.s11_min_swr_label.setText("")
+        # self.s11_min_rl_label.setText("")
+        # self.s11_min_swr_label.setText("")
         self.s21_min_gain_label.setText("")
         self.s21_max_gain_label.setText("")
-        self.tdr_result_label.setText("")
+        #self.tdr_result_label.setText("")
 
         self.settings.setValue("Segments", self.sweep_control.get_segments())
 
@@ -553,8 +781,8 @@ class NanoVNASaver(QWidget):
             m.resetLabels()
             m.updateLabels(s11, s21)
 
-        for c in self.s11charts:
-            c.setData(s11)
+        # for c in self.s11charts:
+        #     c.setData(s11)
 
         for c in self.s21charts:
             c.setData(s21)
@@ -563,7 +791,7 @@ class NanoVNASaver(QWidget):
             c.setCombinedData(s11, s21)
 
         self.sweep_control.progress_bar.setValue(int(self.worker.percentage))
-        self.windows["tdr"].updateTDR()
+        # self.windows["tdr"].updateTDR()
 
         if s11:
             min_vswr = min(s11, key=lambda data: data.vswr)
@@ -593,6 +821,7 @@ class NanoVNASaver(QWidget):
 
         self.updateTitle()
         self.communicate.data_available.emit()
+        # self.update_logged_data_table(s21)
 
     def sweepFinished(self):
         self._sweep_control(start=False)
@@ -663,24 +892,25 @@ class NanoVNASaver(QWidget):
             self.vna.reconnect()  # try reconnection
         self.sweepFinished()
 
-    def popoutChart(self, chart: Chart):
-        logger.debug("Requested popout for chart: %s", chart.name)
-        new_chart = self.copyChart(chart)
-        new_chart.isPopout = True
-        new_chart.show()
-        new_chart.setWindowTitle(new_chart.name)
+    # def popoutChart(self, chart: Chart):
+    #     logger.debug("Requested popout for chart: %s", chart.name)
+    #     new_chart = self.copyChart(chart)
+    #     new_chart.isPopout = True
+    #     new_chart.show()
+    #     new_chart.setWindowTitle(new_chart.name)
 
-    def copyChart(self, chart: Chart):
-        new_chart = chart.copy()
-        self.subscribing_charts.append(new_chart)
-        if chart in self.s11charts:
-            self.s11charts.append(new_chart)
-        if chart in self.s21charts:
-            self.s21charts.append(new_chart)
-        if chart in self.combinedCharts:
-            self.combinedCharts.append(new_chart)
-        new_chart.popoutRequested.connect(self.popoutChart)
-        return new_chart
+    # def copyChart(self, chart: Chart):
+    #     if chart not in self.charts_layout:
+    #         new_chart = chart.copy()
+    #         self.subscribing_charts.append(new_chart)
+    #         # if chart in self.s11charts:
+    #         #     self.s11charts.append(new_chart)
+    #     # if chart in self.s21charts:
+    #     #     self.s21charts.append(new_chart)
+    #     # if chart in self.combinedCharts:
+    #     #     self.combinedCharts.append(new_chart)
+    #         new_chart.popoutRequested.connect(self.popoutChart)
+    #     return new_chart
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.worker.stopped = True
@@ -723,3 +953,40 @@ class NanoVNASaver(QWidget):
     def update_sweep_title(self):
         for c in self.subscribing_charts:
             c.setSweepTitle(self.sweep.properties.name)
+
+
+
+
+    #######################
+    # Data table functions 
+    #######################
+
+
+    def start_gps_worker(self):
+        asyncio.run(gps_worker())
+    
+    def update_gps_data(self):
+       global latest_latitude, latest_longitude, scan_count, scan_data
+       # Update GPS coordinates
+       self.latitude_label.setText("Latitude: {:.6f}".format(latest_latitude))
+       self.longitude_label.setText("Longitude: {:.6f}".format(latest_longitude))
+    # Update table
+       row_position = self.table.rowCount()
+       self.table.insertRow(row_position)
+       self.table.setItem(row_position, 0, QTableWidgetItem(str(scan_count)))
+       self.table.setItem(row_position, 1, QTableWidgetItem("Evaluation"))  # Placeholder for evaluation
+       self.table.setItem(row_position, 2, QTableWidgetItem("{:.6f}".format(latest_latitude)))
+       self.table.setItem(row_position, 3, QTableWidgetItem("{:.6f}".format(latest_longitude)))
+       scan_count += 1
+
+    def gather_data_to_export():
+       data_to_export = []
+       for index in range(len(scan_data['Number'])):
+           latitude = scan_data['Latitude'][index]
+           longitude = scan_data['Longitude'][index]
+           data_to_export.append((latitude, longitude))
+       export_data_to_map(data_to_export)    
+    
+
+
+       

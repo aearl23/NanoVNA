@@ -57,10 +57,10 @@ class ChartColors:  # pylint: disable=too-many-instance-attributes
 
 @dataclass
 class ChartDimensions:
-    height: int = 200
-    height_min: int = 200
-    width: int = 200
-    width_min: int = 200
+    height: int = 100
+    height_min: int = 100
+    width: int = 100
+    width_min: int = 100
     line: int = 1
     point: int = 2
 

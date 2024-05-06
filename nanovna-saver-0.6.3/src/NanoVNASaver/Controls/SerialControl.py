@@ -53,14 +53,14 @@ class SerialControl(Control):
         self.btn_toggle.clicked.connect(self.serialButtonClick)
         button_layout.addWidget(self.btn_toggle, stretch=1)
 
-        self.btn_settings = QtWidgets.QPushButton("Manage")
-        self.btn_settings.setMinimumHeight(20)
-        self.btn_settings.setFixedWidth(60)
-        self.btn_settings.clicked.connect(
-            lambda: self.app.display_window("device_settings")
-        )
+        # self.btn_settings = QtWidgets.QPushButton("Manage")
+        # self.btn_settings.setMinimumHeight(20)
+        # self.btn_settings.setFixedWidth(60)
+        # self.btn_settings.clicked.connect(
+        #     lambda: self.app.display_window("device_settings")
+        # )
 
-        button_layout.addWidget(self.btn_settings, stretch=0)
+        # button_layout.addWidget(self.btn_settings, stretch=0)
         self.layout.addRow(button_layout)
 
     def rescanSerialPort(self):

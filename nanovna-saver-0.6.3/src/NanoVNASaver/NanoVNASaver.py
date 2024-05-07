@@ -24,6 +24,7 @@ import sys
 import threading
 import time
 import serial 
+import math
 #import adafruit_gps
 import requests
 import webbrowser
@@ -33,7 +34,7 @@ from PyQt6 import QtWidgets, QtCore, QtGui
 from PyQt6.QtCore import QObject, QTimer 
 from PyQt6.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
-
+from PyQt6.QtGui import QColor
 
 from NanoVNASaver import Defaults
 from .Windows import (
@@ -87,9 +88,77 @@ from .Touchstone import Touchstone
 from .About import version
 
 
+##########################################
+# GPS Module 
+##########################################
+
+# Global variables to store lat and lng
+latest_latitude = None
+latest_longitude = None
+
+scan_count = 0
+scan_data = {
+    'Number': [],
+    'Evaluation': [],
+    'Latitude': [],
+    'Longitude': []
+}
+
+# Constantly read GPS data
+# async def gps_worker():
+#     global latest_latitude, latest_longitude
+#     # Function that writes GPS data to gps_data.txt
+#     # Create a serial connection for the GPS connection using default speed
+#     uart = serial.Serial("/dev/serial0", baudrate=9600, timeout=3000)
+
+#     # Create a GPS module instance.
+#     gps = adafruit_gps.GPS(uart, debug=False)
+#     # Use UART/pyserial
+
+#     gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+#     gps.send_command(b"PMTK220,1000")
+
+#     # Main loop runs forever printing the location, etc. every second.
+#     last_print = time.monotonic()
+#     while True:
+#         # Make sure to call gps.update() every loop iteration and at least twice
+#         # as fast as data comes from the GPS unit (usually every second).
+#         # This returns a bool that's true if it parsed new data (you can ignore it
+#         # though if you don't care and instead look at the has_fix property).
+#         gps.update()
+#         # Every second save current location details to global variables if there's a fix.
+#         current = time.monotonic()
+#         if current - last_print >= 1.0:
+#             last_print = current
+#             if gps.has_fix:
+#                 latest_latitude = gps.latitude
+#                 latest_longitude = gps.longitude
+#                 print("=" * 40)  # Print a separator line.
+#                 print("Fix timestamp: {}/{}/{} {:02}:{:02}:{:02}".format(
+#                     gps.timestamp_utc.tm_mon,  # Grab parts of the time from the
+#                     gps.timestamp_utc.tm_mday,  # struct_time object that holds
+#                     gps.timestamp_utc.tm_year,  # the fix time.  Note you might
+#                     gps.timestamp_utc.tm_hour,  # not get all data like year, day,
+#                     gps.timestamp_utc.tm_min,  # month!
+#                     gps.timestamp_utc.tm_sec,
+#                 ))
+#                 print("Latitude: {0:.6f} degrees".format(gps.latitude))
+#                 print("Longitude: {0:.6f} degrees".format(gps.longitude))
+#                 print("Precise Latitude: {:.0f}.{:04.4f} degrees".format(
+#                     gps.latitude_degrees, gps.latitude_minutes
+#                 ))
+#                 print("Precise Longitude: {:.0f}.{:04.4f} degrees".format(
+#                     gps.longitude_degrees, gps.longitude_minutes
+#                 ))
+#             else:
+#                 print("Waiting for fix...")
+#         await asyncio.sleep(1)
+
+
+logger = logging.getLogger(__name__)
 
 ###########################################
-# Map data export
+# Export Map data to web browser 
 ###########################################
 
 def export_data_to_map():
@@ -196,74 +265,6 @@ def export_data_to_map():
 
         url = "https://maps.co/gis/"
         webbrowser.open(url) 
-
-##########################################
-# GPS Module 
-##########################################
-
-# Global variables to store lat and lng
-latest_latitude = None
-latest_longitude = None
-scan_count = 0
-scan_data = {
-    'Number': [],
-    'Evaluation': [],
-    'Latitude': [],
-    'Longitude': []
-}
-
-# Constantly read GPS data
-# async def gps_worker():
-#     global latest_latitude, latest_longitude
-#     # Function that writes GPS data to gps_data.txt
-#     # Create a serial connection for the GPS connection using default speed
-#     uart = serial.Serial("/dev/serial0", baudrate=9600, timeout=3000)
-
-#     # Create a GPS module instance.
-#     gps = adafruit_gps.GPS(uart, debug=False)
-#     # Use UART/pyserial
-
-#     gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
-#     gps.send_command(b"PMTK220,1000")
-
-#     # Main loop runs forever printing the location, etc. every second.
-#     last_print = time.monotonic()
-#     while True:
-#         # Make sure to call gps.update() every loop iteration and at least twice
-#         # as fast as data comes from the GPS unit (usually every second).
-#         # This returns a bool that's true if it parsed new data (you can ignore it
-#         # though if you don't care and instead look at the has_fix property).
-#         gps.update()
-#         # Every second save current location details to global variables if there's a fix.
-#         current = time.monotonic()
-#         if current - last_print >= 1.0:
-#             last_print = current
-#             if gps.has_fix:
-#                 latest_latitude = gps.latitude
-#                 latest_longitude = gps.longitude
-#                 print("=" * 40)  # Print a separator line.
-#                 print("Fix timestamp: {}/{}/{} {:02}:{:02}:{:02}".format(
-#                     gps.timestamp_utc.tm_mon,  # Grab parts of the time from the
-#                     gps.timestamp_utc.tm_mday,  # struct_time object that holds
-#                     gps.timestamp_utc.tm_year,  # the fix time.  Note you might
-#                     gps.timestamp_utc.tm_hour,  # not get all data like year, day,
-#                     gps.timestamp_utc.tm_min,  # month!
-#                     gps.timestamp_utc.tm_sec,
-#                 ))
-#                 print("Latitude: {0:.6f} degrees".format(gps.latitude))
-#                 print("Longitude: {0:.6f} degrees".format(gps.longitude))
-#                 print("Precise Latitude: {:.0f}.{:04.4f} degrees".format(
-#                     gps.latitude_degrees, gps.latitude_minutes
-#                 ))
-#                 print("Precise Longitude: {:.0f}.{:04.4f} degrees".format(
-#                     gps.longitude_degrees, gps.longitude_minutes
-#                 ))
-#             else:
-#                 print("Waiting for fix...")
-#         await asyncio.sleep(1)
-
-
-logger = logging.getLogger(__name__)
 
 
 class Communicate(QObject):
@@ -441,7 +442,7 @@ class NanoVNASaver(QWidget):
 
         left_column = QtWidgets.QVBoxLayout()
         right_column = QtWidgets.QVBoxLayout()
-        right_column.addLayout(self.charts_layout)
+        #right_column.addLayout(self.charts_layout)
         self.marker_frame.setHidden(Defaults.cfg.gui.markers_hidden)
         chart_widget = QWidget()
         chart_widget.setLayout(right_column)
@@ -615,16 +616,6 @@ class NanoVNASaver(QWidget):
 
         left_column.addWidget(self.serial_control)
 
-
-        ###############################################################
-        # Buttons 
-        ###############################################################
-
-        self.export_button = QPushButton("Export Data to Map")
-        self.export_button.clicked.connect(export_data_to_map)
-
-        right_column.addWidget(self.export_button)
-
         ###############################################################
         # GPS labels 
         ###############################################################
@@ -651,6 +642,16 @@ class NanoVNASaver(QWidget):
             'Longitude': []
         }
         self.scan_count = 0
+
+        ###############################################################
+        # Buttons 
+        ###############################################################
+
+        self.export_button = QPushButton("Export Data to Map")
+        self.export_button.clicked.connect(export_data_to_map)
+
+        self.marker_column.addWidget(self.export_button)
+
 
         ###############################################################
         #  GPS worker start and updates
@@ -734,6 +735,7 @@ class NanoVNASaver(QWidget):
 
         logger.debug("Starting worker thread")
         self.threadpool.start(self.worker)
+        self.scan_count += 1
 
     def sweep_stop(self):
         self.worker.stopped = True
@@ -749,7 +751,7 @@ class NanoVNASaver(QWidget):
         else:
             time = strftime('%Y-%m-%d %H:%M:%S', localtime())
             name = self.sweep.properties.name or 'nanovna'
-            self.sweepSource = f'{name}_{time}'
+            self.sweepSource = f'{name}_{time}'    
 
     def markerUpdated(self, marker: Marker):
         with self.dataLock:
@@ -780,6 +782,7 @@ class NanoVNASaver(QWidget):
                 self.delta_marker.resetLabels()
                 with contextlib.suppress(IndexError):
                     self.delta_marker.updateLabels()
+
 
     def dataUpdated(self):
         with self.dataLock:
@@ -832,11 +835,20 @@ class NanoVNASaver(QWidget):
         self.communicate.data_available.emit()
         # self.update_logged_data_table(s21)
 
+
     def sweepFinished(self):
         self._sweep_control(start=False)
 
         for marker in self.markers:
             marker.frequencyInput.textEdited.emit(marker.frequencyInput.text())
+        
+        with self.dataLock:
+            s11 = self.data.s11[:]
+            s21 = self.data.s21[:]
+
+        min_gain = min(s21, key=lambda data: data.gain)
+        max_gain = max(s21, key=lambda data: data.gain)
+        self.log(min_gain, max_gain)
 
     def setReference(self, s11=None, s21=None, source=None):
         if not s11:
@@ -970,56 +982,55 @@ class NanoVNASaver(QWidget):
     # Data table functions 
     #######################
 
-    def evaluate(min_gain, max_gain): 
-        data_average = (min_gain + max_gain) / 2
-        if data_average < 60: 
+      #Data evaluation and log to table 
+
+    def evaluate(self, min_gain, max_gain): 
+        min_gain_value = min_gain.gain
+        max_gain_value = max_gain.gain
+        data_average = abs(min_gain_value + max_gain_value) / 2
+        if data_average < 50: 
             evaluation = "Water detected"
-            return evaluation 
+            color = QColor("green")
         else: 
-            evaulation = "No water detected"
-            return evaluation 
+            evaluation = "No water detected"
+            color = QColor("red")
+
+        color_item = QTableWidgetItem(evaluation) 
+        color_item.setForeground(color)       
+        return color_item 
     
 
-    def log(self): 
+    def log(self, min_gain, max_gain): 
+        material_evaluation = self.evaluate(min_gain, max_gain)
         new_scan = {
             'Number': self.scan_count,
-            'Evaluation': self.evaluate(),  # You need to implement `evaluate()` function
+            'Evaluation': material_evaluation,  # You need to implement `evaluate()` function
             'Latitude': latest_latitude,    # Make sure `latest_latitude` and `latest_longitude` are accessible
             'Longitude': latest_longitude
         }
         for key, value in new_scan.items():
             self.scan_data[key].append(value)
         self.display_table()
-
-    def start_gps_worker(self):
-        asyncio.run(gps_worker())
     
     def display_table(self):
        self.data_table.setRowCount(len(self.scan_data['Number']))
        for index in range(len(self.scan_data['Number'])):
-           scan_number = self.scan_data['Number'][index]
-           evaluation = self.scan_data['Evaluation'][index]
-           latitude = self.scan_data['Latitude'][index]
-           longitude = self.scan_data['Longitude'][index]
-           self.data_table.setItem(index, 0, QTableWidgetItem(str(scan_number)))
-           self.data_table.setItem(index, 1, QTableWidgetItem(evaluation))
-           self.data_table.setItem(index, 2, QTableWidgetItem("{:.6f}".format(latitude)))
-           self.data_table.setItem(index, 3, QTableWidgetItem("{:.6f}".format(longitude)))
+            scan_number = self.scan_data['Number'][index]
+            evaluation = self.scan_data['Evaluation'][index]
+            latitude = self.scan_data['Latitude'][index]
+            longitude = self.scan_data['Longitude'][index]
+            if latitude is not None and longitude is not None:
+                latitude_str = "{:.6f}".format(latitude)
+                longitude_str = "{:.6f}".format(longitude)
+            else: 
+                latitude_str = "N/A"
+                longitude_str = "N/A"  
+
+            self.data_table.setItem(index, 0, QTableWidgetItem(str(scan_number)))
+            self.data_table.setItem(index, 1, QTableWidgetItem(evaluation))
+            self.data_table.setItem(index, 2, QTableWidgetItem(latitude_str))
+            self.data_table.setItem(index, 3, QTableWidgetItem(longitude_str))
     
-
-    def update_gps_data(self):
-       global latest_latitude, latest_longitude
-       # Update GPS coordinates
-       self.latitude_label.setText("Latitude: {:.6f}".format(latest_latitude))
-       self.longitude_label.setText("Longitude: {:.6f}".format(latest_longitude))
-       # Update table
-       row_position = self.table.rowCount()
-       self.table.insertRow(row_position)
-       self.table.setItem(row_position, 0, QTableWidgetItem(str(scan_count)))
-       self.table.setItem(row_position, 1, QTableWidgetItem("Evaluation"))  # Placeholder for evaluation
-       self.table.setItem(row_position, 2, QTableWidgetItem("{:.6f}".format(latest_latitude)))
-       self.table.setItem(row_position, 3, QTableWidgetItem("{:.6f}".format(latest_longitude)))
-
     #gather data from the table 
     def gather_data_to_export():
        data_to_export = []
@@ -1028,6 +1039,9 @@ class NanoVNASaver(QWidget):
            longitude = scan_data['Longitude'][index]
            data_to_export.append((latitude, longitude))
        export_data_to_map(data_to_export)   
+
+    def start_gps_worker(self):
+        asyncio.run(gps_worker())
 
 
 

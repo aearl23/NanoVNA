@@ -21,6 +21,9 @@
 
 import os.path
 import sys
+import threading 
+import asyncio
+# from src.NanoVNASaver import gps_worker
 
 # Ignore the current working directory.
 src = os.path.join(os.path.dirname(__file__), "src")
@@ -31,7 +34,17 @@ if os.path.exists(src):
 # pylint: disable-next=wrong-import-position
 import NanoVNASaver.__main__
 
+# def start_gps_worker(): 
+#     asyncio.run(gps_worker())
+
+def main():
+    # gps_thread = threading.Thread(target=start_gps_worker)
+    # gps_thread.start()
+
+    NanoVNASaver.__main__.main()
+
+
 # The traditional test does not make sense here.
 assert __name__ == "__main__"
 
-NanoVNASaver.__main__.main()
+main()

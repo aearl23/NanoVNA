@@ -643,6 +643,15 @@ class NanoVNASaver(QWidget):
         self.data_table.setHorizontalHeaderLabels(['Scan Number', 'Evaluation', 'Latitude', 'Longitude'])
         self.marker_column.addWidget(self.data_table)
 
+        #Initialize data
+        self.scan_data = {
+            'Number': [],
+            'Evaluation': [],
+            'Latitude': [],
+            'Longitude': []
+        }
+        self.scan_count = 0
+
         ###############################################################
         #  GPS worker start and updates
         ###############################################################
@@ -961,31 +970,68 @@ class NanoVNASaver(QWidget):
     # Data table functions 
     #######################
 
+    def evaluate(min_gain, max_gain): 
+        data_average = (min_gain + max_gain) / 2
+        if data_average < 60: 
+            evaluation = "Water detected"
+            return evaluation 
+        else: 
+            evaulation = "No water detected"
+            return evaluation 
+    
+
+    def log(self): 
+        new_scan = {
+            'Number': self.scan_count,
+            'Evaluation': self.evaluate(),  # You need to implement `evaluate()` function
+            'Latitude': latest_latitude,    # Make sure `latest_latitude` and `latest_longitude` are accessible
+            'Longitude': latest_longitude
+        }
+        for key, value in new_scan.items():
+            self.scan_data[key].append(value)
+        self.display_table()
 
     def start_gps_worker(self):
         asyncio.run(gps_worker())
     
+    def display_table(self):
+       self.data_table.setRowCount(len(self.scan_data['Number']))
+       for index in range(len(self.scan_data['Number'])):
+           scan_number = self.scan_data['Number'][index]
+           evaluation = self.scan_data['Evaluation'][index]
+           latitude = self.scan_data['Latitude'][index]
+           longitude = self.scan_data['Longitude'][index]
+           self.data_table.setItem(index, 0, QTableWidgetItem(str(scan_number)))
+           self.data_table.setItem(index, 1, QTableWidgetItem(evaluation))
+           self.data_table.setItem(index, 2, QTableWidgetItem("{:.6f}".format(latitude)))
+           self.data_table.setItem(index, 3, QTableWidgetItem("{:.6f}".format(longitude)))
+    
+
     def update_gps_data(self):
-       global latest_latitude, latest_longitude, scan_count, scan_data
+       global latest_latitude, latest_longitude
        # Update GPS coordinates
        self.latitude_label.setText("Latitude: {:.6f}".format(latest_latitude))
        self.longitude_label.setText("Longitude: {:.6f}".format(latest_longitude))
-    # Update table
+       # Update table
        row_position = self.table.rowCount()
        self.table.insertRow(row_position)
        self.table.setItem(row_position, 0, QTableWidgetItem(str(scan_count)))
        self.table.setItem(row_position, 1, QTableWidgetItem("Evaluation"))  # Placeholder for evaluation
        self.table.setItem(row_position, 2, QTableWidgetItem("{:.6f}".format(latest_latitude)))
        self.table.setItem(row_position, 3, QTableWidgetItem("{:.6f}".format(latest_longitude)))
-       scan_count += 1
 
+    #gather data from the table 
     def gather_data_to_export():
        data_to_export = []
        for index in range(len(scan_data['Number'])):
            latitude = scan_data['Latitude'][index]
            longitude = scan_data['Longitude'][index]
            data_to_export.append((latitude, longitude))
-       export_data_to_map(data_to_export)    
+       export_data_to_map(data_to_export)   
+
+
+
+     
     
 
 

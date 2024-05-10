@@ -23,7 +23,7 @@ import os.path
 import sys
 import threading 
 import asyncio
-# from src.NanoVNASaver import gps_worker
+# from src.NanoVNASaver.NanoVNASaver import gps_worker
 
 # Ignore the current working directory.
 src = os.path.join(os.path.dirname(__file__), "src")
@@ -38,8 +38,8 @@ import NanoVNASaver.__main__
 #     asyncio.run(gps_worker())
 
 def main():
-    # gps_thread = threading.Thread(target=start_gps_worker)
-    # gps_thread.start()
+#     gps_thread = threading.Thread(target=start_gps_worker)
+#     gps_thread.start()
 
     NanoVNASaver.__main__.main()
 

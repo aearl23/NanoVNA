@@ -37,100 +37,100 @@ class GUI:
     custom_colors: bool = False
     dark_mode: bool = False
     splitter_sizes: QByteArray = DC.field(default_factory=QByteArray)
-    markers_hidden: bool = False
+    # markers_hidden: bool = False
 
 
 @DC.dataclass
 class ChartsSelected:
-    chart_00: str = "S11 Smith Chart"
-    chart_01: str = "S11 Return Loss"
-    chart_02: str = "None"
-    chart_10: str = "S21 Polar Plot"
+    # chart_00: str = "S11 Smith Chart"
+    # chart_01: str = "S11 Return Loss"
+    # chart_02: str = "None"
+    # chart_10: str = "S21 Polar Plot"
     chart_11: str = "S21 Gain"
-    chart_12: str = "None"
+    # chart_12: str = "None"
 
 
-@DC.dataclass
-class Chart:
-    point_size: int = 2
-    show_lines: bool = False
-    line_thickness: int = 1
-    marker_count: int = 3
-    marker_label: bool = False
-    marker_filled: bool = False
-    marker_at_tip: bool = False
-    marker_size: int = 8
-    returnloss_is_positive: bool = False
-    show_bands: bool = False
-    vswr_lines: list = DC.field(default_factory=list)
+# @DC.dataclass
+# class Chart:
+#     point_size: int = 2
+#     show_lines: bool = False
+#     line_thickness: int = 1
+#     marker_count: int = 3
+#     marker_label: bool = False
+#     marker_filled: bool = False
+#     marker_at_tip: bool = False
+#     marker_size: int = 8
+#     returnloss_is_positive: bool = False
+#     show_bands: bool = False
+#     vswr_lines: list = DC.field(default_factory=list)
 
 
-@DC.dataclass
-class ChartColors:  # pylint: disable=too-many-instance-attributes
-    background: QColor = DC.field(
-        default_factory=lambda: QColor(QColorConstants.White)
-    )
-    foreground: QColor = DC.field(
-        default_factory=lambda: QColor(QColorConstants.LightGray)
-    )
-    reference: QColor = DC.field(default_factory=lambda: QColor(0, 0, 255, 64))
-    reference_secondary: QColor = DC.field(
-        default_factory=lambda: QColor(0, 0, 192, 48)
-    )
-    sweep: QColor = DC.field(
-        default_factory=lambda: QColor(QColorConstants.DarkYellow)
-    )
-    sweep_secondary: QColor = DC.field(
-        default_factory=lambda: QColor(QColorConstants.DarkMagenta)
-    )
-    swr: QColor = DC.field(default_factory=lambda: QColor(255, 0, 0, 128))
-    text: QColor = DC.field(
-        default_factory=lambda: QColor(QColorConstants.Black)
-    )
-    bands: QColor = DC.field(default_factory=lambda: QColor(128, 128, 128, 48))
+# @DC.dataclass
+# class ChartColors:  # pylint: disable=too-many-instance-attributes
+#     background: QColor = DC.field(
+#         default_factory=lambda: QColor(QColorConstants.White)
+#     )
+#     foreground: QColor = DC.field(
+#         default_factory=lambda: QColor(QColorConstants.LightGray)
+#     )
+#     reference: QColor = DC.field(default_factory=lambda: QColor(0, 0, 255, 64))
+#     reference_secondary: QColor = DC.field(
+#         default_factory=lambda: QColor(0, 0, 192, 48)
+#     )
+#     sweep: QColor = DC.field(
+#         default_factory=lambda: QColor(QColorConstants.DarkYellow)
+#     )
+#     sweep_secondary: QColor = DC.field(
+#         default_factory=lambda: QColor(QColorConstants.DarkMagenta)
+#     )
+#     swr: QColor = DC.field(default_factory=lambda: QColor(255, 0, 0, 128))
+#     text: QColor = DC.field(
+#         default_factory=lambda: QColor(QColorConstants.Black)
+#     )
+#     bands: QColor = DC.field(default_factory=lambda: QColor(128, 128, 128, 48))
 
 
-@DC.dataclass
-class Markers:
-    active_labels: list = DC.field(
-        default_factory=lambda: [
-            "actualfreq",
-            "impedance",
-            "serr",
-            "serl",
-            "serc",
-            "parr",
-            "parlc",
-            "vswr",
-            "returnloss",
-            "s11q",
-            "s11phase",
-            "s21gain",
-            "s21phase",
-        ]
-    )
-    colored_names: bool = True
-    color_0: QColor = DC.field(
-        default_factory=lambda: QColor(QColorConstants.DarkGray)
-    )
-    color_1: QColor = DC.field(default_factory=lambda: QColor(255, 0, 0))
-    color_2: QColor = DC.field(default_factory=lambda: QColor(0, 255, 0))
-    color_3: QColor = DC.field(default_factory=lambda: QColor(0, 0, 255))
-    color_4: QColor = DC.field(default_factory=lambda: QColor(0, 255, 255))
-    color_5: QColor = DC.field(default_factory=lambda: QColor(255, 0, 255))
-    color_6: QColor = DC.field(default_factory=lambda: QColor(255, 255, 0))
-    color_7: QColor = DC.field(
-        default_factory=lambda: QColor(QColorConstants.LightGray)
-    )
+# @DC.dataclass
+# class Markers:
+#     active_labels: list = DC.field(
+#         default_factory=lambda: [
+#             "actualfreq",
+#             "impedance",
+#             "serr",
+#             "serl",
+#             "serc",
+#             "parr",
+#             "parlc",
+#             "vswr",
+#             "returnloss",
+#             "s11q",
+#             "s11phase",
+#             "s21gain",
+#             "s21phase",
+#         ]
+#     )
+#     colored_names: bool = True
+#     color_0: QColor = DC.field(
+#         default_factory=lambda: QColor(QColorConstants.DarkGray)
+#     )
+#     color_1: QColor = DC.field(default_factory=lambda: QColor(255, 0, 0))
+#     color_2: QColor = DC.field(default_factory=lambda: QColor(0, 255, 0))
+#     color_3: QColor = DC.field(default_factory=lambda: QColor(0, 0, 255))
+#     color_4: QColor = DC.field(default_factory=lambda: QColor(0, 255, 255))
+#     color_5: QColor = DC.field(default_factory=lambda: QColor(255, 0, 255))
+#     color_6: QColor = DC.field(default_factory=lambda: QColor(255, 255, 0))
+#     color_7: QColor = DC.field(
+#         default_factory=lambda: QColor(QColorConstants.LightGray)
+#     )
 
 
 @DC.dataclass
 class CFG:
     gui: object = DC.field(default_factory=GUI)
-    charts_selected: object = DC.field(default_factory=ChartsSelected)
-    chart: object = DC.field(default_factory=Chart)
-    chart_colors: object = DC.field(default_factory=ChartColors)
-    markers: object = DC.field(default_factory=Markers)
+    # charts_selected: object = DC.field(default_factory=ChartsSelected)
+    # chart: object = DC.field(default_factory=Chart)
+    # chart_colors: object = DC.field(default_factory=ChartColors)
+    # markers: object = DC.field(default_factory=Markers)
 
 
 cfg = CFG()

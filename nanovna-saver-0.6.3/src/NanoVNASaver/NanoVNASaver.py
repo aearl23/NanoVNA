@@ -38,16 +38,16 @@ from PyQt6.QtGui import QColor
 
 from NanoVNASaver import Defaults
 from .Windows import (
-    AboutWindow,
-    AnalysisWindow,
-    CalibrationWindow,
-    DeviceSettingsWindow,
-    DisplaySettingsWindow,
+#     # AboutWindow,
+#     # AnalysisWindow,
+#     # CalibrationWindow,
+#     # DeviceSettingsWindow,
+#     #DisplaySettingsWindow,
     SweepSettingsWindow,
-    TDRWindow,
-    FilesWindow,
+#     TDRWindow,
+#     FilesWindow,
 )
-from .Controls.MarkerControl import MarkerControl
+#from .Controls.MarkerControl import MarkerControl
 from .Controls.SweepControl import SweepControl
 from .Controls.SerialControl import SerialControl
 from .Formatting import format_frequency, format_vswr, format_gain
@@ -294,7 +294,7 @@ class NanoVNASaver(QWidget):
             "NanoVNASaver",
         )
         logger.info("Settings from: %s", self.settings.fileName())
-        Defaults.cfg = Defaults.restore(self.settings)
+        #Defaults.cfg = Defaults.restore(self.settings)
         self.threadpool = QtCore.QThreadPool()
         self.sweep = Sweep()
         self.worker = SweepWorker(self)
@@ -312,7 +312,7 @@ class NanoVNASaver(QWidget):
         self.marker_frame.setLayout(self.marker_column)
 
         self.sweep_control = SweepControl(self)
-        self.marker_control = MarkerControl(self)
+        #self.marker_control = MarkerControl(self)
         self.serial_control = SerialControl(self)
 
         self.bands = BandsModel()
@@ -358,43 +358,8 @@ class NanoVNASaver(QWidget):
         scrollarea.setWidget(widget)
 
         self.charts = {
-            # "s11": {
-            #     "capacitance": CapacitanceChart("S11 Serial C"),
-            #     "group_delay": GroupDelayChart("S11 Group Delay"),
-            #     "inductance": InductanceChart("S11 Serial L"),
-            #     "log_mag": LogMagChart("S11 Return Loss"),
-            #     "magnitude": MagnitudeChart("|S11|"),
-            #     "magnitude_z": MagnitudeZChart("S11 |Z|"),
-            #     "permeability": PermeabilityChart(
-            #         "S11 R/\N{GREEK SMALL LETTER OMEGA} &"
-            #         " X/\N{GREEK SMALL LETTER OMEGA}"
-            #     ),
-            #     "phase": PhaseChart("S11 Phase"),
-            #     "q_factor": QualityFactorChart("S11 Quality Factor"),
-            #     "real_imag": RealImaginaryZChart("S11 R+jX"),
-            #     "real_imag_mu": RealImaginaryMuChart(
-            #         "S11 \N{GREEK SMALL LETTER MU}"
-            #    ),
-                # "smith": SmithChart("S11 Smith Chart"),
-                # "s_parameter": SParameterChart("S11 Real/Imaginary"),
-                # "vswr": VSWRChart("S11 VSWR"),
-                # "sa_dbm": LogMagChart("Signal Analyser dBm"),
-            #},
             "s21": {
-                #"group_delay": GroupDelayChart(
-                #    "S21 Group Delay", reflective=False
-                #),
                 "log_mag": LogMagChart("S21 Gain"),
-                #"magnitude": MagnitudeChart("|S21|"),
-                #"magnitude_z_shunt": MagnitudeZShuntChart("S21 |Z| shunt"),
-                #"magnitude_z_series": MagnitudeZSeriesChart("S21 |Z| series"),
-                #"real_imag_shunt": RealImaginaryZShuntChart("S21 R+jX shunt"),
-                #"real_imag_series": RealImaginaryZSeriesChart(
-                #    "S21 R+jX series"
-                #),
-                #"phase": PhaseChart("S21 Phase"),
-                #"polar": PolarChart("S21 Polar Plot"),
-                #"s_parameter": SParameterChart("S21 Real/Imaginary"),
             },
             "combined": {
                 "log_mag": CombinedLogMagChart("S11 & S21 LogMag"),
@@ -402,9 +367,6 @@ class NanoVNASaver(QWidget):
         }
         self.tdr_chart = TDRChart("TDR")
         self.tdr_mainwindow_chart = TDRChart("TDR")
-
-        #List of all the S11 charts, for selecting
-        #self.s11charts = list(self.charts["s11"].values())
 
         #List of all the S21 charts, for selecting
         self.s21charts = list(self.charts["s21"].values())
@@ -414,12 +376,7 @@ class NanoVNASaver(QWidget):
 
         # List of all charts that can be selected for display
         self.selectable_charts = (
-            #self.s11charts
             self.s21charts
-        #      + self.combinedChartss
-        #      + [
-        #          self.tdr_mainwindow_chart,
-        #      ]
         )
 
         # List of all charts that subscribe to updates (including duplicates!)
@@ -427,11 +384,7 @@ class NanoVNASaver(QWidget):
         self.subscribing_charts.extend(self.selectable_charts)
         self.subscribing_charts.append(self.tdr_chart)
 
-        # for c in self.subscribing_charts:
-        #     c.popoutRequested.connect(self.popoutChart)
-
         self.charts_layout = QtWidgets.QGridLayout()
-        # self.charts_layout.addWidget(self.s21charts)
 
 
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Q"), self, self.close)
@@ -443,7 +396,7 @@ class NanoVNASaver(QWidget):
         left_column = QtWidgets.QVBoxLayout()
         right_column = QtWidgets.QVBoxLayout()
         #right_column.addLayout(self.charts_layout)
-        self.marker_frame.setHidden(Defaults.cfg.gui.markers_hidden)
+        # self.marker_frame.setHidden(Defaults.cfg.gui.markers_hidden)
         chart_widget = QWidget()
         chart_widget.setLayout(right_column)
         self.splitter = QtWidgets.QSplitter()
@@ -460,14 +413,8 @@ class NanoVNASaver(QWidget):
         ###############################################################
 
         self.windows = {
-        #     "about": AboutWindow(self),
-        #     "analysis": AnalysisWindow(self),
-        #     "calibration": CalibrationWindow(self),
-        #     "device_settings": DeviceSettingsWindow(self),
-        #     "file": FilesWindow(self),
             "sweep_settings": SweepSettingsWindow(self),
-            "setup": DisplaySettingsWindow(self),
-        #     "tdr": TDRWindow(self),
+            # "setup": DisplaySettingsWindow(self),
         }
 
         ###############################################################
@@ -476,36 +423,6 @@ class NanoVNASaver(QWidget):
 
         left_column.addWidget(self.sweep_control)
 
-        # ###############################################################
-        #  Marker control
-        ###############################################################
-
-        #left_column.addWidget(self.marker_control)
-
-        # for c in self.subscribing_charts:
-        #     c.setMarkers(self.markers)
-        #     c.setBands(self.bands)
-
-        # self.marker_data_layout = QtWidgets.QVBoxLayout()
-        # self.marker_data_layout.setContentsMargins(0, 0, 0, 0)
-
-        # for m in self.markers:
-        #     self.marker_data_layout.addWidget(m.get_data_layout())
-
-        # scroll2 = QtWidgets.QScrollArea()
-        # scroll2.setWidgetResizable(True)
-        # scroll2.setVisible(True)
-
-        # widget2 = QWidget()
-        # widget2.setLayout(self.marker_data_layout)
-        # scroll2.setWidget(widget2)
-        # self.marker_column.addWidget(scroll2)
-
-        # init delta marker (but assume only one marker exists)
-        # self.delta_marker = DeltaMarker("Delta Marker 2 - Marker 1")
-        # self.delta_marker_layout = self.delta_marker.get_data_layout()
-        # self.delta_marker_layout.hide()
-        # self.marker_column.addWidget(self.delta_marker_layout)
 
         ###############################################################
         #  Statistics/analysis
@@ -538,43 +455,6 @@ class NanoVNASaver(QWidget):
 
         self.marker_column.addWidget(s21_control_box)
 
-        # self.marker_column.addStretch(1)
-
-        # self.windows["analysis"] = AnalysisWindow(self)
-        # btn_show_analysis = QtWidgets.QPushButton("Analysis ...")
-        # btn_show_analysis.setMinimumHeight(10)
-        # btn_show_analysis.clicked.connect(
-        #     lambda: self.display_window("analysis")
-        # )
-        # self.marker_column.addWidget(btn_show_analysis)
-
-        ###############################################################
-        # TDR
-        ###############################################################
-
-        # self.tdr_chart.tdrWindow = self.windows["tdr"]
-        # self.tdr_mainwindow_chart.tdrWindow = self.windows["tdr"]
-        # self.windows["tdr"].updated.connect(self.tdr_chart.update)
-        # self.windows["tdr"].updated.connect(self.tdr_mainwindow_chart.update)
-
-        # tdr_control_box = QtWidgets.QGroupBox()
-        # tdr_control_box.setTitle("TDR")
-        # tdr_control_layout = QtWidgets.QFormLayout()
-        # tdr_control_box.setLayout(tdr_control_layout)
-
-        # self.tdr_result_label = QtWidgets.QLabel()
-        # self.tdr_result_label.setMinimumHeight(10)
-        # tdr_control_layout.addRow(
-        #     "Estimated cable length:", self.tdr_result_label
-        # )
-
-        # self.tdr_button = QtWidgets.QPushButton("Time Domain Reflectometry ...")
-        # self.tdr_button.setMinimumHeight(10)
-        # self.tdr_button.clicked.connect(lambda: self.display_window("tdr"))
-
-        # tdr_control_layout.addRow(self.tdr_button)
-
-        # left_column.addWidget(tdr_control_box)
 
         ###############################################################
         #  Spacer
@@ -588,27 +468,6 @@ class NanoVNASaver(QWidget):
                 QtWidgets.QSizePolicy.Policy.Expanding,
             )
         )
-
-        ###############################################################
-        #  Reference control
-        ###############################################################
-
-        # reference_control_box = QtWidgets.QGroupBox()
-        # reference_control_box.setTitle("Reference sweep")
-        # reference_control_layout = QtWidgets.QFormLayout(reference_control_box)
-
-        # btn_set_reference = QtWidgets.QPushButton("Set current as reference")
-        # btn_set_reference.setMinimumHeight(10)
-        # btn_set_reference.clicked.connect(self.setReference)
-        # self.btnResetReference = QtWidgets.QPushButton("Reset reference")
-        # self.btnResetReference.setMinimumHeight(10)
-        # self.btnResetReference.clicked.connect(self.resetReference)
-        # self.btnResetReference.setDisabled(True)
-
-        # reference_control_layout.addRow(btn_set_reference)
-        # reference_control_layout.addRow(self.btnResetReference)
-
-        # left_column.addWidget(reference_control_box)
 
         ###############################################################
         #  Serial control
@@ -651,59 +510,6 @@ class NanoVNASaver(QWidget):
         self.export_button.clicked.connect(export_data_to_map)
 
         self.marker_column.addWidget(self.export_button)
-
-
-        ###############################################################
-        #  GPS worker start and updates
-        ###############################################################
-
-        # self.gps_thread = threading.Thread(target=self.start_gps_worker)
-        # self.gps_thread.start()
-
-        # # Update GPS coordinates and table every second
-        # self.update_timer = QTimer()
-        # self.update_timer.timeout.connect(self.update_data)
-        # self.update_timer.start(1000)
-
-        ###############################################################
-        #  Calibration
-        ###############################################################
-
-        # btnOpenCalibrationWindow = QtWidgets.QPushButton("Calibration ...")
-        # btnOpenCalibrationWindow.setMinimumHeight(10)
-        # self.calibrationWindow = CalibrationWindow(self)
-        # btnOpenCalibrationWindow.clicked.connect(
-        #     lambda: self.display_window("calibration")
-        # )
-
-        ###############################################################
-        #  Display setup
-        ###############################################################
-
-        # btn_display_setup = QtWidgets.QPushButton("Display setup ...")
-        # btn_display_setup.setMinimumHeight(10)
-        # btn_display_setup.clicked.connect(lambda: self.display_window("setup"))
-
-        # btn_about = QtWidgets.QPushButton("About ...")
-        # btn_about.setMinimumHeight(10)
-
-        # btn_about.clicked.connect(lambda: self.display_window("about"))
-
-        # btn_open_file_window = QtWidgets.QPushButton("Files ...")
-        # btn_open_file_window.setMinimumHeight(10)
-
-        # btn_open_file_window.clicked.connect(
-        #     lambda: self.display_window("file")
-        # )
-
-        # button_grid = QtWidgets.QGridLayout()
-        # button_grid.addWidget(btn_open_file_window, 0, 0)
-        # button_grid.addWidget(btnOpenCalibrationWindow, 0, 1)
-        # button_grid.addWidget(btn_display_setup, 1, 0)
-        # button_grid.addWidget(btn_about, 1, 1)
-        # left_column.addLayout(button_grid)
-
-        # logger.debug("Finished building interface")
 
     def auto_connect(self):  # connect if there is exactly one detected serial device
         if self.serial_control.inp_port.count() == 1:
@@ -753,35 +559,35 @@ class NanoVNASaver(QWidget):
             name = self.sweep.properties.name or 'nanovna'
             self.sweepSource = f'{name}_{time}'    
 
-    def markerUpdated(self, marker: Marker):
-        with self.dataLock:
-            marker.findLocation(self.data.s11)
-            marker.resetLabels()
-            marker.updateLabels(self.data.s11, self.data.s21)
-            for c in self.subscribing_charts:
-                c.update()
-        if not self.delta_marker_layout.isHidden():
-            m1 = self.markers[0]
-            m2 = None
-            if self.marker_ref:
-                if self.ref_data:
-                    m2 = Marker("Reference")
-                    m2.location = self.markers[0].location
-                    m2.resetLabels()
-                    m2.updateLabels(self.ref_data.s11, self.ref_data.s21)
-                else:
-                    logger.warning("No reference data for marker")
+    # def markerUpdated(self, marker: Marker):
+    #     with self.dataLock:
+    #         marker.findLocation(self.data.s11)
+    #         marker.resetLabels()
+    #         marker.updateLabels(self.data.s11, self.data.s21)
+    #         for c in self.subscribing_charts:
+    #             c.update()
+    #     if not self.delta_marker_layout.isHidden():
+    #         m1 = self.markers[0]
+    #         m2 = None
+    #         if self.marker_ref:
+    #             if self.ref_data:
+    #                 m2 = Marker("Reference")
+    #                 m2.location = self.markers[0].location
+    #                 m2.resetLabels()
+    #                 m2.updateLabels(self.ref_data.s11, self.ref_data.s21)
+    #             else:
+    #                 logger.warning("No reference data for marker")
 
-            elif Marker.count() >= 2:
-                m2 = self.markers[1]
+    #         elif Marker.count() >= 2:
+    #             m2 = self.markers[1]
 
-            if m2 is None:
-                logger.error("No data for delta, missing marker or reference")
-            else:
-                self.delta_marker.set_markers(m1, m2)
-                self.delta_marker.resetLabels()
-                with contextlib.suppress(IndexError):
-                    self.delta_marker.updateLabels()
+    #         if m2 is None:
+    #             logger.error("No data for delta, missing marker or reference")
+    #         else:
+    #             self.delta_marker.set_markers(m1, m2)
+    #             self.delta_marker.resetLabels()
+    #             with contextlib.suppress(IndexError):
+    #                 self.delta_marker.updateLabels()
 
 
     def dataUpdated(self):
@@ -913,25 +719,6 @@ class NanoVNASaver(QWidget):
             self.vna.reconnect()  # try reconnection
         self.sweepFinished()
 
-    # def popoutChart(self, chart: Chart):
-    #     logger.debug("Requested popout for chart: %s", chart.name)
-    #     new_chart = self.copyChart(chart)
-    #     new_chart.isPopout = True
-    #     new_chart.show()
-    #     new_chart.setWindowTitle(new_chart.name)
-
-    # def copyChart(self, chart: Chart):
-    #     if chart not in self.charts_layout:
-    #         new_chart = chart.copy()
-    #         self.subscribing_charts.append(new_chart)
-    #         # if chart in self.s11charts:
-    #         #     self.s11charts.append(new_chart)
-    #     # if chart in self.s21charts:
-    #     #     self.s21charts.append(new_chart)
-    #     # if chart in self.combinedCharts:
-    #     #     self.combinedCharts.append(new_chart)
-    #         new_chart.popoutRequested.connect(self.popoutChart)
-    #     return new_chart
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.worker.stopped = True
@@ -941,7 +728,7 @@ class NanoVNASaver(QWidget):
         self.bands.saveSettings()
         self.threadpool.waitForDone(2500)
 
-        Defaults.cfg.chart.marker_count = Marker.count()
+        # Defaults.cfg.chart.marker_count = Marker.count()
         Defaults.cfg.gui.window_width = self.width()
         Defaults.cfg.gui.window_height = self.height()
         Defaults.cfg.gui.splitter_sizes = self.splitter.saveState()
@@ -1040,8 +827,8 @@ class NanoVNASaver(QWidget):
            data_to_export.append((latitude, longitude))
        export_data_to_map(data_to_export)   
 
-    def start_gps_worker(self):
-        asyncio.run(gps_worker())
+    # def start_gps_worker(self):
+    #     asyncio.run(gps_worker())
 
 
 

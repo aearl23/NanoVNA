@@ -52,27 +52,6 @@ class DisplaySettingsWindow(QtWidgets.QWidget):
         display_options_box = QtWidgets.QGroupBox("Options")
         display_options_layout = QtWidgets.QFormLayout(display_options_box)
 
-        # self.returnloss_group = QtWidgets.QButtonGroup()
-        # self.returnloss_is_negative = QtWidgets.QRadioButton("Negative")
-        # self.returnloss_is_positive = QtWidgets.QRadioButton("Positive")
-        # self.returnloss_group.addButton(self.returnloss_is_positive)
-        # self.returnloss_group.addButton(self.returnloss_is_negative)
-
-        # display_options_layout.addRow(
-        #     "Return loss is:", self.returnloss_is_negative
-        # )
-        # display_options_layout.addRow("", self.returnloss_is_positive)
-
-        # self.returnloss_is_positive.setChecked(
-        #     Defaults.cfg.chart.returnloss_is_positive
-        # )
-        # self.returnloss_is_negative.setChecked(
-        #     not Defaults.cfg.chart.returnloss_is_positive
-        # )
-
-        # self.returnloss_is_positive.toggled.connect(self.changeReturnLoss)
-        # self.changeReturnLoss()
-
         self.show_lines_option = QtWidgets.QCheckBox("Show lines")
         show_lines_label = QtWidgets.QLabel(
             "Displays a thin line between data points"
@@ -89,9 +68,9 @@ class DisplaySettingsWindow(QtWidgets.QWidget):
 
         self.pointSizeInput = QtWidgets.QSpinBox()
         self.pointSizeInput.setMinimumHeight(20)
-        pointsize = Defaults.cfg.chart.point_size
-        self.pointSizeInput.setValue(pointsize)
-        self.changePointSize(pointsize)
+        # pointsize = Defaults.cfg.chart.point_size
+        # self.pointSizeInput.setValue(pointsize)
+        # self.changePointSize(pointsize)
         self.pointSizeInput.setMinimum(1)
         self.pointSizeInput.setMaximum(10)
         self.pointSizeInput.setSuffix(" px")
@@ -101,9 +80,9 @@ class DisplaySettingsWindow(QtWidgets.QWidget):
 
         self.lineThicknessInput = QtWidgets.QSpinBox()
         self.lineThicknessInput.setMinimumHeight(20)
-        linethickness = Defaults.cfg.chart.line_thickness
-        self.lineThicknessInput.setValue(linethickness)
-        self.changeLineThickness(linethickness)
+        # linethickness = Defaults.cfg.chart.line_thickness
+        # self.lineThicknessInput.setValue(linethickness)
+        # self.changeLineThickness(linethickness)
         self.lineThicknessInput.setMinimum(1)
         self.lineThicknessInput.setMaximum(10)
         self.lineThicknessInput.setSuffix(" px")
@@ -113,8 +92,8 @@ class DisplaySettingsWindow(QtWidgets.QWidget):
 
         self.markerSizeInput = QtWidgets.QSpinBox()
         self.markerSizeInput.setMinimumHeight(20)
-        markersize = Defaults.cfg.chart.marker_size
-        self.markerSizeInput.setValue(markersize)
+        # markersize = Defaults.cfg.chart.marker_size
+        # self.markerSizeInput.setValue(markersize)
         self.markerSizeInput.setMinimum(4)
         self.markerSizeInput.setMaximum(20)
         self.markerSizeInput.setSingleStep(2)
@@ -156,8 +135,8 @@ class DisplaySettingsWindow(QtWidgets.QWidget):
         display_options_layout.addRow("Data point is:", self.marker_at_center)
         display_options_layout.addRow("", self.marker_at_tip)
 
-        self.marker_at_tip.setChecked(Defaults.cfg.chart.marker_at_tip)
-        self.marker_at_center.setChecked(not Defaults.cfg.chart.marker_at_tip)
+        # self.marker_at_tip.setChecked(Defaults.cfg.chart.marker_at_tip)
+        # self.marker_at_center.setChecked(not Defaults.cfg.chart.marker_at_tip)
 
         self.marker_at_tip.toggled.connect(self.changeMarkerAtTip)
         self.changeMarkerAtTip()
@@ -472,17 +451,6 @@ class DisplaySettingsWindow(QtWidgets.QWidget):
                 found.show()
             # if found.isHidden():
 
-    # def changeReturnLoss(self):
-    #     state = self.returnloss_is_positive.isChecked()
-    #     Defaults.cfg.chart.returnloss_is_positive = bool(state)
-    #     for m in self.app.markers:
-    #         m.returnloss_is_positive = state
-    #         m.updateLabels(self.app.data.s11, self.app.data.s21)
-    #     self.marker_window.exampleMarker.returnloss_is_positive = state
-    #     self.marker_window.updateMarker()
-    #     self.app.charts["s11"]["log_mag"].isInverted = state
-    #     self.app.charts["s11"]["log_mag"].update()
-
     def changeShowLines(self):
         state = self.show_lines_option.isChecked()
         Defaults.cfg.chart.show_lines = bool(state)
@@ -501,9 +469,9 @@ class DisplaySettingsWindow(QtWidgets.QWidget):
         )
         self.updateCharts()
 
-    def changeMarkerAtTip(self):
-        Defaults.cfg.chart.marker_at_tip = bool(self.marker_at_tip.isChecked())
-        self.updateCharts()
+    # def changeMarkerAtTip(self):
+    #     Defaults.cfg.chart.marker_at_tip = bool(self.marker_at_tip.isChecked())
+    #     self.updateCharts()
 
     def changePointSize(self, size: int):
         Defaults.cfg.chart.point_size = size

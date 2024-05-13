@@ -34,7 +34,7 @@ from PyQt6 import QtWidgets, QtCore, QtGui
 from PyQt6.QtCore import QObject, QTimer 
 from PyQt6.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QPixmap
 
 from NanoVNASaver import Defaults
 from .Windows import (
@@ -417,12 +417,56 @@ class NanoVNASaver(QWidget):
             # "setup": DisplaySettingsWindow(self),
         }
 
+
+        ##############################
+        #image
+        ##############################
+        image_label = QLabel()
+        image = QPixmap(r"C:\Users\aaron\OneDrive\Documents\TTO Work\NanoVNA\nanovna-saver-0.6.3\src\NanoVNASaver\channels4_profile.jpg")
+        width = 100
+        height = 100
+        image = image.scaled(width, height)
+
+        # Load the image file (replace 'path_to_your_image.png' with the actual path to your image file)
+        image_label.setPixmap(image)
+
+        # Add the image label to the layout
+        left_column.addWidget(image_label)
+
+        # Add a spacer item to create some space between the image and the other widgets
+        left_column.addSpacerItem(
+           QtWidgets.QSpacerItem(
+               1,
+               1,
+               QtWidgets.QSizePolicy.Policy.Fixed,
+               QtWidgets.QSizePolicy.Policy.Expanding,
+           )
+        )
+
         ###############################################################
         #  Sweep control
         ###############################################################
 
         left_column.addWidget(self.sweep_control)
 
+        ###############################################################
+        #  Spacer
+        ###############################################################
+
+        left_column.addSpacerItem(
+            QtWidgets.QSpacerItem(
+                1,
+                1,
+                QtWidgets.QSizePolicy.Policy.Fixed,
+                QtWidgets.QSizePolicy.Policy.Expanding,
+            )
+        )
+
+        ###############################################################
+        #  Serial control
+        ###############################################################
+
+        left_column.addWidget(self.serial_control)
 
         ###############################################################
         #  Statistics/analysis
@@ -455,25 +499,6 @@ class NanoVNASaver(QWidget):
 
         self.marker_column.addWidget(s21_control_box)
 
-
-        ###############################################################
-        #  Spacer
-        ###############################################################
-
-        left_column.addSpacerItem(
-            QtWidgets.QSpacerItem(
-                1,
-                1,
-                QtWidgets.QSizePolicy.Policy.Fixed,
-                QtWidgets.QSizePolicy.Policy.Expanding,
-            )
-        )
-
-        ###############################################################
-        #  Serial control
-        ###############################################################
-
-        left_column.addWidget(self.serial_control)
 
         ###############################################################
         # GPS labels 

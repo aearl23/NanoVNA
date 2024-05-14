@@ -422,7 +422,8 @@ class NanoVNASaver(QWidget):
         #image
         ##############################
         image_label = QLabel()
-        image = QPixmap(r"C:\Users\aaron\OneDrive\Documents\TTO Work\NanoVNA\nanovna-saver-0.6.3\src\NanoVNASaver\channels4_profile.jpg")
+        image_path = r"C:\Users\aaron\OneDrive\Documents\TTO Work\CornStalk Software with NanoVNA\nanovna-saver-0.6.3\src\NanoVNASaver\channels4_profile.jpg"
+        image = QPixmap(image_path)
         width = 100
         height = 100
         image = image.scaled(width, height)
